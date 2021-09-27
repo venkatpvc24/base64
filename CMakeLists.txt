@@ -1,0 +1,1 @@
+target_sources(base64 PRIVATE bs64.c)
