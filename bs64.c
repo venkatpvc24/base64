@@ -57,7 +57,7 @@ int base64(int argc, char** argv)
             if (strcmp(argv[i], "-max-len"))
             {
                 int len;
-                sscanf(argv[i], "%d", &len);
+                sscanf(argv[i + 1], "%d", &len);
 
                 if (len > MAX_LINE)
                 {
