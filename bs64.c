@@ -4,6 +4,8 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <stdlib.h>
+#include <unistd.h>
+
 
 #define MAX_LINE 10
 
@@ -25,52 +27,37 @@ static void b64_encode(const char in[3], unsigned char* out, int len)
 
 }
 
-int base64(int argc, char** argv)
+int main(int argc, char** argv)
 {
     bool encode = false, decode = false;
     char *in_file = NULL, *out_file = NULL;
     FILE *in, *out;
     size_t line_length = 0;
-    for ( int i = 0; i < argc; i++)
+    int opt = 0;
+    while( (opt = getopt(argc, argv, "edi:o:l:")) != -1)
     {
-        if (argv[i][0] == '-')
+        switch(opt)
         {
-            if (argv[i][1] == 'e') encode = true;
-            if (argv[i][1] == 'd') decode = true;
-
-            if (argv[i][1] == 'i') {
-                if (argv[i+1] == NULL)
-                {
-                    perror("input file missing");
-                    exit(0);
-                }
-                in_file = argv[i+1];
-            }
-            if (argv[i][1] == 'o') {
-                if (argv[i+1] == NULL)
-                {
-                    perror("output file missing");
-                    exit(0);
-                }
-                out_file = argv[i+1];
-            }
-            if (strcmp(argv[i], "-max-len"))
-            {
-                int len;
-                sscanf(argv[i + 1], "%d", &len);
-
-                if (len > MAX_LINE)
-                {
-                    line_length = len;
-                }
-                else
-                {
-                    line_length = MAX_LINE;
-                }
-            }
+            case 'i':
+                in_file = optarg;
+                break;
+            case 'o':
+                out_file = optarg;
+                break;
+            case 'e':
+                encode = true;
+                break;
+            case 'd':
+                decode = true;
+                break;
+            case 'l':
+                line_length = atoi(optarg);
+            default:
+                printf("unknown command line arg\n");
+                printf("Usage -e or -d [-i file.txt] [-o base64.txt] [-l 32]\n");
+                return EXIT_FAILURE;
         }
     }
-
     if (encode)
     {
         char data_in[3];
