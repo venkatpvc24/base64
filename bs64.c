@@ -31,13 +31,18 @@ int main(int argc, char** argv)
 {
     bool encode = false, decode = false;
     char *in_file = NULL, *out_file = NULL;
+    int type = 0;
     FILE *in, *out;
-    size_t line_length = 0;
+    size_t line_length = 0, line = 0;
     int opt = 0;
-    while( (opt = getopt(argc, argv, "edi:o:l:")) != -1)
+    char* end = NULL;
+    while( (opt = getopt(argc, argv, "t:edi:o:l:")) != -1)
     {
         switch(opt)
         {
+            case 't':
+                type = strtol(optarg, &end, 10);
+                break;
             case 'i':
                 in_file = optarg;
                 break;
@@ -51,10 +56,15 @@ int main(int argc, char** argv)
                 decode = true;
                 break;
             case 'l':
-                line_length = atoi(optarg);
-            default:
+                line = strtol(optarg, &end, 10);
+                if ( line < MAX_LINE)
+                {
+                    line = MAX_LINE;
+                }
+                break;
+            case '?':
                 printf("unknown command line arg\n");
-                printf("Usage -e or -d [-i file.txt] [-o base64.txt] [-l 32]\n");
+                printf("Usage -t 32/64 -e or -d [-i file.txt] [-o base64.txt] [-l 32]\n");
                 return EXIT_FAILURE;
         }
     }
@@ -93,10 +103,10 @@ int main(int argc, char** argv)
             // int len = count_filled_bytes(data_in);
             b64_encode(data_in, data_out, count);
             memset(data_in, 0, sizeof data_in);
-            if ( line_length < 72 ) {
+            if ( line_length < line ) {
                 fwrite(data_out, 1, 4, out);
             }
-            if (line_length >= 72 )
+            if (line_length >= line )
             {
                 fputs("\r\n", out); line_length = 0;
             }
