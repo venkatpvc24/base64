@@ -31,7 +31,7 @@ int main(int argc, char** argv)
 {
     bool encode = false, decode = false;
     char *in_file = NULL, *out_file = NULL;
-    int type = 0;
+    unsigned int type = 0;
     FILE *in, *out;
     size_t line_length = 0, line = 0;
     int opt = 0;
@@ -55,12 +55,13 @@ int main(int argc, char** argv)
             case 'd':
                 decode = true;
                 break;
-            case 'l':
-                line = strtol(optarg, &end, 10);
-                if ( line < MAX_LINE)
-                {
+            case 'l': {
+                int num = strtol(optarg, &end, 10);
+                line = num ? num : 0;
+                if (line < MAX_LINE) {
                     line = MAX_LINE;
                 }
+            }
                 break;
             case '?':
                 printf("unknown command line arg\n");
@@ -70,12 +71,12 @@ int main(int argc, char** argv)
     }
     if (encode)
     {
-        char data_in[3];
-        char* data_out = (char*)malloc(sizeof(char) * 4);
+        unsigned char data_in[3];
+        unsigned char data_out[4];
 
         if (in_file)
         {
-            in = fopen(in_file, "r");
+            in = fopen(in_file, "rb");
             if (!in) perror("could not open file");
         }
         else
@@ -104,7 +105,12 @@ int main(int argc, char** argv)
             b64_encode(data_in, data_out, count);
             memset(data_in, 0, sizeof data_in);
             if ( line_length < line ) {
-                fwrite(data_out, 1, 4, out);
+                size_t size = fwrite(data_out, 1, 4, out);
+                if (size != 4)
+                {
+                    fprintf(stderr, "error writing to file");
+                    return EXIT_FAILURE;
+                }
             }
             if (line_length >= line )
             {
